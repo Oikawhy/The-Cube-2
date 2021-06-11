@@ -4,11 +4,11 @@
 #include <windows.h>
 
 typedef struct object {
-	float x, y; // координаты начала	
-	float width, height; // ширина/высота
-	float vertSpeed; // скорость падения (гравитация)
-	BOOL IsFly; // предмет в полёте?
-	char cType; // что за предмет
+	float x, y; // РєРѕРѕСЂРґРёРЅР°С‚С‹ РЅР°С‡Р°Р»Р°	
+	float width, height; // С€РёСЂРёРЅР°/РІС‹СЃРѕС‚Р°
+	float vertSpeed; // СЃРєРѕСЂРѕСЃС‚СЊ РїР°РґРµРЅРёСЏ (РіСЂР°РІРёС‚Р°С†РёСЏ)
+	BOOL IsFly; // РїСЂРµРґРјРµС‚ РІ РїРѕР»С‘С‚Рµ?
+	char cType; // С‡С‚Рѕ Р·Р° РїСЂРµРґРјРµС‚
 } Tobj;
 
 #define mapHeight 29
@@ -17,135 +17,41 @@ typedef struct object {
 char map[mapHeight][mapWidth + 1];
 Tobj cube; 
 Tobj *brick = NULL;
-int bricklenght; // переменная для динамического выделения памяти блоков
+int bricklenght; // РїРµСЂРµРјРµРЅРЅР°СЏ РґР»СЏ РґРёРЅР°РјРёС‡РµСЃРєРѕРіРѕ РІС‹РґРµР»РµРЅРёСЏ РїР°РјСЏС‚Рё Р±Р»РѕРєРѕРІ
 int level = 1;
 
-// заполнение карты пробелом 
-void cleanmap() {
-	for (int x = 0; x < mapWidth; x++) { 
-		map[0][x] = ' ';
-		map[0][mapWidth] = '\0';
-	}
-	for (int i = 1; i < mapHeight; i++) 
-		sprintf(map[i], map[0]);
-} 
+// Р·Р°РїРѕР»РЅРµРЅРёРµ РєР°СЂС‚С‹ РїСЂРѕР±РµР»РѕРј 
+void cleanmap();
 
-// вывод карты 
-void showmap() {
-	map[mapHeight - 1][mapWidth - 1] = '\0';
-	for (int i = 0; i < mapHeight; i++) 
-		printf("%s\n", map[i]);
-	
-}
+// РІС‹РІРѕРґ РєР°СЂС‚С‹ 
+void showmap();
 
-// начальная позиция объёекта
-void PosObject(Tobj* obj, float xPos, float yPos) {
-	(*obj).x = xPos;
-	(*obj).y = yPos;
-}
+// РЅР°С‡Р°Р»СЊРЅР°СЏ РїРѕР·РёС†РёСЏ РѕР±СЉС‘РµРєС‚Р°
+void PosObject(Tobj* obj, float xPos, float yPos);
 
-// назначение объекту шириины высоты, скорости падения и типа
-void InitObject(Tobj* obj, float xPos, float yPos, float oWidth, float oHeight, char inType) {
-	PosObject(obj, xPos, yPos);
-	(*obj).width = oWidth;
-	(*obj).height = oHeight;
-	(*obj).vertSpeed = 0;
-	(*obj).cType = inType;
-}
+// РЅР°Р·РЅР°С‡РµРЅРёРµ РѕР±СЉРµРєС‚Сѓ С€РёСЂРёРёРЅС‹ РІС‹СЃРѕС‚С‹, СЃРєРѕСЂРѕСЃС‚Рё РїР°РґРµРЅРёСЏ Рё С‚РёРїР°
+void InitObject(Tobj* obj, float xPos, float yPos, float oWidth, float oHeight, char inType);
 
-// Объект не проходит через другой объект
+// РћР±СЉРµРєС‚ РЅРµ РїСЂРѕС…РѕРґРёС‚ С‡РµСЂРµР· РґСЂСѓРіРѕР№ РѕР±СЉРµРєС‚
 BOOL SetCollision(Tobj o1, Tobj o2);
 
-// Создание уровня
+// РЎРѕР·РґР°РЅРёРµ СѓСЂРѕРІРЅСЏ
 void CreateLevel(int lvl);
 
-// гравитация
-void VertSpeedMovement(Tobj* obj) {
-	(*obj).IsFly = TRUE; // объект в полёте
-	(*obj).vertSpeed += 0.05; // скорость падения 
-	PosObject(obj, (*obj).x, (*obj).y + (*obj).vertSpeed); // новая позиция объекта на карте
-	for (int x = 0; x < bricklenght; x++) // цикл прохождения по всем объекта типа "brick"
-		if (SetCollision(*obj, brick[x])) { // проверка на столкновение, если да - скорость 0, объект не в полёте,
-		(*obj).y -= (*obj).vertSpeed;
-		(*obj).vertSpeed = 0;
-		(*obj).IsFly = FALSE; 
-		if (brick[x].cType == '+') { // проверка на столкновение с блоком типа "brick" но символом "+", если да - переход на некст лвл
-			level++;
-			if (level > 2) level = 1;
-			CreateLevel(level);
-			Sleep(1000);
-		}
-		break;
-		}
-}
+// РіСЂР°РІРёС‚Р°С†РёСЏ
+void VertSpeedMovement(Tobj* obj);
 
-// Чтобы объект не превысил границы карты
-BOOL IsPosInMap(int x, int y) {
-	return(((x >= 0) && (x < mapWidth)) && ((y >= 0) && (y < mapHeight)));
-}
+// Р§С‚РѕР±С‹ РѕР±СЉРµРєС‚ РЅРµ РїСЂРµРІС‹СЃРёР» РіСЂР°РЅРёС†С‹ РєР°СЂС‚С‹
+BOOL IsPosInMap(int x, int y);
 
-// размещение объектов на карте
-void PutObject(Tobj obj){
-	//начальные координаты
-	int ix = (int)round(obj.x);
-	int iy = (int)round(obj.y);
+// СЂР°Р·РјРµС‰РµРЅРёРµ РѕР±СЉРµРєС‚РѕРІ РЅР° РєР°СЂС‚Рµ
+void PutObject(Tobj obj);
 
-	//ширина высота 
-	int iwidth = (int)round(obj.width);
-	int iheight = (int)round(obj.height);
-	
-	//цикл заполнения карты
-	for (int x = ix; x < (ix+iwidth); x++) {
-		for (int y = iy; y < (iy + iheight); y++)
-			if (IsPosInMap(x, y))
-				map[y][x] = obj.cType;
-	}
-	
-}
+// РґРІРёР¶РµРЅРёРµ РєР°СЂС‚С‹ (РёР»Р»СЋР·РёСЏ РґРІРёР¶РµРЅРёСЏ РїРµСЂСЃРѕРЅР°Р¶Р°)
+void HorizonMapMove(float dx);
 
-// движение карты (иллюзия движения персонажа)
-void HorizonMapMove(float dx) {
-
-	cube.x -= dx;
-	for (int x = 0; x < bricklenght; x++)
-		if (SetCollision(cube, brick[x])) {
-			cube.x += dx;
-			return;
-		}
-	cube.x += dx; 
-	for (int x = 0; x < bricklenght;x++)
-		brick[x].x += dx;
-}
-
-// Объект не проходит через другой объект
-BOOL SetCollision(Tobj o1, Tobj o2) {
-	return (((o1.x + o1.width) > o2.x) && (o1.x < (o2.x + o2.width) ) &&
-			((o1.y + o1.height) > o2.y) && (o1.y < (o2.y + o2.height)));
-}
-
-// уровень
-void CreateLevel(int lvl) {
-	InitObject(&cube, 30, 10, 5, 3, '@'); // иниицализация объекта типа "персонаж"
-	if (lvl == 1) { // 1 уровень
-		bricklenght = 6; // кол-во блоков на уровне
-		brick = realloc(brick, sizeof(*brick) * bricklenght); // выделеение под них память
-		//         название   X   Y ширина высота символ 
-		InitObject(brick + 0, 20, 20, 40, 5, '#');
-		InitObject(brick + 1, 60, 15, 10, 10, '#');
-		InitObject(brick + 2, 80, 20, 20, 5, '#');
-		InitObject(brick + 3, 120, 15, 10, 10, '#');
-		InitObject(brick + 4, 150, 20, 40, 5, '#');
-		InitObject(brick + 5, 200, 23, 10, 4, '+');
-	}
-	if (lvl==2){ 
-		bricklenght = 4;
-		brick = realloc(brick, sizeof(*brick) * bricklenght);
-		InitObject(brick + 0, 20, 20, 40, 5, '#');
-		InitObject(brick + 1, 80, 20, 20, 5, '#');
-		InitObject(brick + 2, 110, 20, 40, 5, '#');
-		InitObject(brick + 3, 150, 12, 10, 4, '+');
-	}
-}
+// СѓСЂРѕРІРµРЅСЊ
+void CreateLevel(int lvl);
 
 void setcur(int x, int y) {
 	COORD coord;
@@ -157,7 +63,7 @@ void setcur(int x, int y) {
 int main() {
 
 	CreateLevel(level);
-	system("color E"); // цвет консоли
+	system("color E"); // С†РІРµС‚ РєРѕРЅСЃРѕР»Рё
 	do {
 		cleanmap();
 		if ((cube.IsFly == FALSE)&&(GetKeyState(VK_SPACE) < 0)) cube.vertSpeed = -0.9;
@@ -173,3 +79,124 @@ int main() {
 		Sleep(2);
 	} while (GetKeyState(VK_ESCAPE) >= 0);
 }
+
+void cleanmap() {
+	for (int x = 0; x < mapWidth; x++) {
+		map[0][x] = ' ';
+		map[0][mapWidth] = '\0';
+	}
+	for (int i = 1; i < mapHeight; i++)
+		sprintf(map[i], map[0]);
+}
+
+// РІС‹РІРѕРґ РєР°СЂС‚С‹ 
+void showmap() {
+	map[mapHeight - 1][mapWidth - 1] = '\0';
+	for (int i = 0; i < mapHeight; i++)
+		printf("%s\n", map[i]);
+
+}
+
+// РЅР°С‡Р°Р»СЊРЅР°СЏ РїРѕР·РёС†РёСЏ РѕР±СЉС‘РµРєС‚Р°
+void PosObject(Tobj* obj, float xPos, float yPos) {
+	(*obj).x = xPos;
+	(*obj).y = yPos;
+}
+
+// РЅР°Р·РЅР°С‡РµРЅРёРµ РѕР±СЉРµРєС‚Сѓ С€РёСЂРёРёРЅС‹ РІС‹СЃРѕС‚С‹, СЃРєРѕСЂРѕСЃС‚Рё РїР°РґРµРЅРёСЏ Рё С‚РёРїР°
+void InitObject(Tobj* obj, float xPos, float yPos, float oWidth, float oHeight, char inType) {
+	PosObject(obj, xPos, yPos);
+	(*obj).width = oWidth;
+	(*obj).height = oHeight;
+	(*obj).vertSpeed = 0;
+	(*obj).cType = inType;
+}
+
+// РіСЂР°РІРёС‚Р°С†РёСЏ
+void VertSpeedMovement(Tobj* obj) {
+	(*obj).IsFly = TRUE; // РѕР±СЉРµРєС‚ РІ РїРѕР»С‘С‚Рµ
+	(*obj).vertSpeed += 0.05; // СЃРєРѕСЂРѕСЃС‚СЊ РїР°РґРµРЅРёСЏ 
+	PosObject(obj, (*obj).x, (*obj).y + (*obj).vertSpeed); // РЅРѕРІР°СЏ РїРѕР·РёС†РёСЏ РѕР±СЉРµРєС‚Р° РЅР° РєР°СЂС‚Рµ
+	for (int x = 0; x < bricklenght; x++) // С†РёРєР» РїСЂРѕС…РѕР¶РґРµРЅРёСЏ РїРѕ РІСЃРµРј РѕР±СЉРµРєС‚Р° С‚РёРїР° "brick"
+		if (SetCollision(*obj, brick[x])) { // РїСЂРѕРІРµСЂРєР° РЅР° СЃС‚РѕР»РєРЅРѕРІРµРЅРёРµ, РµСЃР»Рё РґР° - СЃРєРѕСЂРѕСЃС‚СЊ 0, РѕР±СЉРµРєС‚ РЅРµ РІ РїРѕР»С‘С‚Рµ,
+			(*obj).y -= (*obj).vertSpeed;
+			(*obj).vertSpeed = 0;
+			(*obj).IsFly = FALSE;
+			if (brick[x].cType == '+') { // РїСЂРѕРІРµСЂРєР° РЅР° СЃС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ Р±Р»РѕРєРѕРј С‚РёРїР° "brick" РЅРѕ СЃРёРјРІРѕР»РѕРј "+", РµСЃР»Рё РґР° - РїРµСЂРµС…РѕРґ РЅР° РЅРµРєСЃС‚ Р»РІР»
+				level++;
+				if (level > 2) level = 1;
+				CreateLevel(level);
+				Sleep(1000);
+			}
+			break;
+		}
+}
+
+// Р§С‚РѕР±С‹ РѕР±СЉРµРєС‚ РЅРµ РїСЂРµРІС‹СЃРёР» РіСЂР°РЅРёС†С‹ РєР°СЂС‚С‹
+BOOL IsPosInMap(int x, int y) {
+	return(((x >= 0) && (x < mapWidth)) && ((y >= 0) && (y < mapHeight)));
+}
+
+// СЂР°Р·РјРµС‰РµРЅРёРµ РѕР±СЉРµРєС‚РѕРІ РЅР° РєР°СЂС‚Рµ
+void PutObject(Tobj obj) {
+	//РЅР°С‡Р°Р»СЊРЅС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹
+	int ix = (int)round(obj.x);
+	int iy = (int)round(obj.y);
+
+	//С€РёСЂРёРЅР° РІС‹СЃРѕС‚Р° 
+	int iwidth = (int)round(obj.width);
+	int iheight = (int)round(obj.height);
+
+	//С†РёРєР» Р·Р°РїРѕР»РЅРµРЅРёСЏ РєР°СЂС‚С‹
+	for (int x = ix; x < (ix + iwidth); x++) {
+		for (int y = iy; y < (iy + iheight); y++)
+			if (IsPosInMap(x, y))
+				map[y][x] = obj.cType;
+	}
+
+}
+
+// РґРІРёР¶РµРЅРёРµ РєР°СЂС‚С‹ (РёР»Р»СЋР·РёСЏ РґРІРёР¶РµРЅРёСЏ РїРµСЂСЃРѕРЅР°Р¶Р°)
+void HorizonMapMove(float dx) {
+
+	cube.x -= dx;
+	for (int x = 0; x < bricklenght; x++)
+		if (SetCollision(cube, brick[x])) {
+			cube.x += dx;
+			return;
+		}
+	cube.x += dx;
+	for (int x = 0; x < bricklenght; x++)
+		brick[x].x += dx;
+}
+
+// РћР±СЉРµРєС‚ РЅРµ РїСЂРѕС…РѕРґРёС‚ С‡РµСЂРµР· РґСЂСѓРіРѕР№ РѕР±СЉРµРєС‚
+BOOL SetCollision(Tobj o1, Tobj o2) {
+	return (((o1.x + o1.width) > o2.x) && (o1.x < (o2.x + o2.width)) &&
+		((o1.y + o1.height) > o2.y) && (o1.y < (o2.y + o2.height)));
+}
+
+// СѓСЂРѕРІРµРЅСЊ
+void CreateLevel(int lvl) {
+	InitObject(&cube, 30, 10, 5, 3, '@'); // РёРЅРёРёС†Р°Р»РёР·Р°С†РёСЏ РѕР±СЉРµРєС‚Р° С‚РёРїР° "РїРµСЂСЃРѕРЅР°Р¶"
+	if (lvl == 1) { // 1 СѓСЂРѕРІРµРЅСЊ
+		bricklenght = 6; // РєРѕР»-РІРѕ Р±Р»РѕРєРѕРІ РЅР° СѓСЂРѕРІРЅРµ
+		brick = realloc(brick, sizeof(*brick) * bricklenght); // РІС‹РґРµР»РµРµРЅРёРµ РїРѕРґ РЅРёС… РїР°РјСЏС‚СЊ
+		//         РЅР°Р·РІР°РЅРёРµ   X   Y С€РёСЂРёРЅР° РІС‹СЃРѕС‚Р° СЃРёРјРІРѕР» 
+		InitObject(brick + 0, 20, 20, 40, 5, '#');
+		InitObject(brick + 1, 60, 15, 10, 10, '#');
+		InitObject(brick + 2, 80, 20, 20, 5, '#');
+		InitObject(brick + 3, 120, 15, 10, 10, '#');
+		InitObject(brick + 4, 150, 20, 40, 5, '#');
+		InitObject(brick + 5, 200, 23, 10, 4, '+');
+	}
+	if (lvl == 2) {
+		bricklenght = 4;
+		brick = realloc(brick, sizeof(*brick) * bricklenght);
+		InitObject(brick + 0, 20, 20, 40, 5, '#');
+		InitObject(brick + 1, 80, 20, 20, 5, '#');
+		InitObject(brick + 2, 110, 20, 40, 5, '#');
+		InitObject(brick + 3, 150, 12, 10, 4, '+');
+	}
+}
+
